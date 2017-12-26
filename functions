@@ -25,6 +25,16 @@ clone_main_cmd() {
       git checkout -qq "$TAGNAME"
       cd ..
     fi
+
+    # Ensure the current checked out branch is master
+    cd .clone
+    git checkout -qq -b tmp/dokku-clone
+    # drop the master branch if it exists
+    (git rev-parse -q --verify master && git branch -f -q -D master) || true
+    git checkout --q -b master
+    git branch -q -D tmp/dokku-clone
+    cd ..
+
     rsync -a "$DOKKU_ROOT/$APP/.clone/.git/" ./
     rm -rf "$DOKKU_ROOT/$APP/.clone"
 
