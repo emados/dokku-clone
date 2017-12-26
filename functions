@@ -33,6 +33,13 @@ clone_main_cmd() {
     (git rev-parse -q --verify master && git branch -f -q -D master) || true
     git checkout --q -b master
     git branch -q -D tmp/dokku-clone
+
+    if [[ ! -z $APP_JSON_PATH ]]; then
+        clone_app_json_cmd $APP_JSON_PATH
+        # elif [[ ! -z $APP_JSON_URL ]]; then
+        #     clone_app_json_cmd $APP_JSON_URL
+    fi
+
     cd ..
 
     rsync -a "$DOKKU_ROOT/$APP/.clone/.git/" ./
@@ -72,4 +79,16 @@ clone_allow_cmd() {
 
   ssh-keyscan -t rsa "$DOMAIN" >> "$DOKKU_ROOT/.ssh/known_hosts"
   dokku_log_info1 "$DOMAIN added to known hosts"
+}
+
+clone_app_json_cmd() {
+  local APPJSON="$1"
+
+  cd "$DOKKU_ROOT/$APP/.clone/"
+  cp $APPJSON ./
+  git add .
+  git -c user.name='dokku-clone' \
+      -c user.email='dokku-clone' \
+      commit -m "Add app.json"
+  cd ..
 }
